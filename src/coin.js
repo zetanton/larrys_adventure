@@ -8,10 +8,18 @@ export class Coin {
     this.width = 8;
     this.height = 8;
     this.collected = false;
+    this.value = y === 80 ? 1000 : 100;
+    this.isGiant = y === 80;
   }
 
   render(ctx) {
     if (this.collected) return;
-    SpriteRenderer.drawSprite(ctx, SPRITES.COIN, this.x, this.y, 1);
+    SpriteRenderer.drawSprite(
+      ctx, 
+      SPRITES.COIN, 
+      this.x, 
+      this.y, 
+      this.isGiant ? 2 : 1
+    );
   }
 }

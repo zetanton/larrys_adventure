@@ -1,8 +1,9 @@
 import { SPRITES } from './sprites.js';
 import { SpriteRenderer } from './sprite-renderer.js';
+import { CompleteScreen } from './complete-screen.js';
 
 export class Player {
-  constructor(x, y, audioManager) {
+  constructor(x, y, audioManager, game) {
     this.x = x;
     this.y = y;
     this.width = 16;
@@ -20,6 +21,11 @@ export class Player {
     this.deathAnimationFrame = 0;
     this.invulnerable = false;
     this.audio = audioManager;
+    this.facingRight = true;
+    this.isWalking = false;
+    this.animationFrame = 0;
+    this.ANIMATION_SPEED = 0.15;
+    this.game = game;
   }
 
   die() {
@@ -37,8 +43,8 @@ export class Player {
   }
 
   reset(x, y) {
-    this.x = x;
-    this.y = y;
+    this.x = 1;
+    this.y = 224;
     this.velocityX = 0;
     this.velocityY = 0;
     this.isDying = false;
@@ -54,23 +60,23 @@ export class Player {
       
       if (this.deathAnimationFrame > 60) {
         if (this.lives > 0) {
-          this.reset(50, 200);
+          this.reset(5, 200);
         }
       }
       return;
     }
 
-    if (keys['ArrowRight']) {
+    if (keys['ArrowRight'] || keys['KeyD']) {
       this.velocityX = this.speed;
       this.direction = 1;
-    } else if (keys['ArrowLeft']) {
+    } else if (keys['ArrowLeft'] || keys['KeyA']) {
       this.velocityX = -this.speed;
       this.direction = -1;
     } else {
       this.velocityX = 0;
     }
 
-    if (keys['Space'] && !this.isJumping) {
+    if ((keys['Space'] || keys['KeyW']) && !this.isJumping) {
       this.velocityY = this.jumpForce;
       this.isJumping = true;
       this.audio.play('jump');
@@ -97,8 +103,14 @@ export class Player {
     level.coins.forEach(coin => {
       if (!coin.collected && this.collidesWith(coin)) {
         coin.collected = true;
-        this.score += 100;
+        this.score += coin.value;
         this.audio.play('coin');
+        
+        if (coin.isGiant && level.currentLevel === 25) {
+          this.game.gameState = 'COMPLETE';
+          this.game.completeScreen = new CompleteScreen(this.score);
+          this.audio.stopMusic();
+        }
       }
     });
 
@@ -120,6 +132,22 @@ export class Player {
     if (this.y > 240 && !this.isDying) {
       this.die();
     }
+
+    if (keys['ArrowRight'] || keys['KeyD']) {
+      this.facingRight = true;
+      this.isWalking = true;
+    } else if (keys['ArrowLeft'] || keys['KeyA']) {
+      this.facingRight = false;
+      this.isWalking = true;
+    } else {
+      this.isWalking = false;
+    }
+
+    if (this.isWalking) {
+      this.animationFrame += this.ANIMATION_SPEED;
+    } else {
+      this.animationFrame = 0;
+    }
   }
 
   collidesWith(entity) {
@@ -134,7 +162,7 @@ export class Player {
     for (let i = 0; i < this.lives; i++) {
       SpriteRenderer.drawSprite(
         ctx,
-        SPRITES.MARIO_RIGHT,
+        SPRITES.LARRY_RIGHT,
         10 + i * 20,
         10,
         1
@@ -147,7 +175,20 @@ export class Player {
     // Flash when invulnerable
     if (this.invulnerable && Math.floor(Date.now() / 100) % 2 === 0) return;
 
-    const sprite = SPRITES.MARIO_RIGHT;
+    let sprite;
+    if (this.velocityY !== 0) {
+      sprite = this.facingRight ? SPRITES.LARRY_RIGHT_JUMP : SPRITES.LARRY_LEFT_JUMP;
+    } else if (this.isWalking) {
+      const isWalkFrame = Math.floor(this.animationFrame % 2) === 1;
+      if (this.facingRight) {
+        sprite = isWalkFrame ? SPRITES.LARRY_RIGHT_WALK : SPRITES.LARRY_RIGHT;
+      } else {
+        sprite = isWalkFrame ? SPRITES.LARRY_LEFT_WALK : SPRITES.LARRY_LEFT;
+      }
+    } else {
+      sprite = this.facingRight ? SPRITES.LARRY_RIGHT : SPRITES.LARRY_LEFT;
+    }
+
     SpriteRenderer.drawSprite(
       ctx,
       sprite,
@@ -158,7 +199,9 @@ export class Player {
 
     // Draw score
     ctx.fillStyle = 'white';
-    ctx.font = '16px Arial';
-    ctx.fillText(`Score: ${this.score}`, 10, 40);
+    ctx.font = '10px "Press Start 2P"';
+    ctx.textAlign = 'right';
+    const scoreText = `SCORE ${this.score}`;
+    ctx.fillText(scoreText, 246, 20); // 246 = virtualWidth(256) - 10px padding
   }
 }

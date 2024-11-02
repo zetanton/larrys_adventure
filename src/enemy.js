@@ -7,8 +7,10 @@ export class Enemy {
     this.y = y;
     this.width = 16;
     this.height = 16;
-    this.velocityX = -1;
+    this.velocityX = x > 200 ? -2 : -1;
     this.alive = true;
+    this.isBig = x > 200;
+    this.scale = this.isBig ? 2 : 1.5;
   }
 
   update(level) {
@@ -52,6 +54,6 @@ export class Enemy {
 
   render(ctx) {
     if (!this.alive) return;
-    SpriteRenderer.drawSprite(ctx, SPRITES.GOOMBA, this.x, this.y, 1.5);
+    SpriteRenderer.drawSprite(ctx, SPRITES.DOOMBA, this.x, this.y, this.scale);
   }
 }

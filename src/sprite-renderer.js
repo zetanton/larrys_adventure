@@ -8,7 +8,7 @@ export class SpriteRenderer {
         if (pixel !== 0) {
           ctx.fillStyle = COLORS[pixel];
           ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
-        }
+        } 
       });
     });
   }

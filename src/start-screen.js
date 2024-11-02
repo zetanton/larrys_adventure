@@ -8,7 +8,7 @@ export class StartScreen {
 
   render(ctx, width, height) {
     // Background
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#4A5459';
     ctx.fillRect(0, 0, width, height);
 
     // Title
@@ -22,7 +22,7 @@ export class StartScreen {
     const bounceOffset = Math.sin(this.frameCount * 0.05) * 5;
     SpriteRenderer.drawSprite(
       ctx,
-      SPRITES.MARIO_RIGHT,
+      SPRITES.LARRY_RIGHT,
       width / 2 - 24,
       height / 2 - 24 + bounceOffset,
       2
